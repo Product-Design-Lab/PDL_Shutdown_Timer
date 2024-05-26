@@ -11,25 +11,21 @@ public:
         DEBUG_MAX,
     };
 
-    PDL_Shutdown_Timer();
+    // Constructor with default values for shutdown_time_sec and enable_gpio_state
+    PDL_Shutdown_Timer(uint8_t en_pin, float shutdown_time_sec = 60.0, bool enable_gpio_state = HIGH);
+    
+    // Destructor to clean up resources
+    ~PDL_Shutdown_Timer();
 
-    // Initializes the timer module
-    void init();
     // Starts the shutdown timer
     int start();
     // Stops the shutdown timer
     int stop();
     // Resets the shutdown timer
     void reset();
-    // De-initializes the timer module, freeing resources
-    void deinit();
 
-    // Sets the enable pin for the timer
-    void setEnPin(uint8_t en_pin);
     // Sets the shutdown duration in seconds
-    void setShutdownTimeSec(uint32_t shutdown_time_sec);
-    // Sets the GPIO state to use for shutdown
-    void setEnableGpioState(bool enable_gpio_state);
+    void setShutdownTimeSec(float shutdown_time_sec);
 
     // Sets the debug level for the timer module
     void setDebug(DebugLevel debug);
@@ -37,16 +33,13 @@ public:
     // Shuts down the system
     void systemShutdown();
 
-    // Puts the system to sleep
-    void systemSleep();
-
 private:
     // Private Variables
     TimerHandle_t xTimer;
-    uint8_t en_pin;
-    uint32_t shutdown_time_sec;
-    bool enable_gpio_state;
-    DebugLevel debug;
+    const uint8_t en_pin;
+    float shutdown_time_sec;
+    const bool enable_gpio_state;
+    DebugLevel debug = DEBUG_ON;
 
     // Private Function Prototypes
     static void vTimerCallback(TimerHandle_t xTimer);

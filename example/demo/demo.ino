@@ -1,45 +1,39 @@
-#include "PDL_Shutdown_Timer.h"
-#include "Adafruit_TinyUSB.h"
+#include <PDL_Shutdown_Timer.h>
+#include <Adafruit_TinyUSB.h>
 
-#define LED_PIN LED_GREEN // Define the pin where the LED is connected
+// Define the pin to control power and the duration for the shutdown timer
+#define SHUTDOWN_PIN 7
+#define SHUTDOWN_DURATION_SEC 10 // 10 seconds
+#define POWER_ON_STATE HIGH      // GPIO state that keeps power enabled
 
-// Create an instance of PDL_Shutdown_Timer
-PDL_Shutdown_Timer shutdownTimer;
+// Create an instance of PDL_Shutdown_Timer with the specified pin, duration, and power on state
+PDL_Shutdown_Timer shutdownTimer(SHUTDOWN_PIN, SHUTDOWN_DURATION_SEC, POWER_ON_STATE);
 
-void setup() {
-    // Initialize Serial for debugging outputs
-    Serial.begin(115200);
-    while (!Serial) ; // Wait for serial port to connect.
-
-    Serial.println("Initializing system...");
-
-    // Set up the LED pin as an output
-    pinMode(LED_PIN, OUTPUT);
-    digitalWrite(LED_PIN, HIGH);
-
-    // Set debug level
+void setup()
+{
+    // Initialize serial communication for debugging purposes
+    Serial.begin(9600);
+    // Set the debug level
     shutdownTimer.setDebug(PDL_Shutdown_Timer::DEBUG_ON);
-
-    // Initialize the shutdown timer module
-    shutdownTimer.init();
-
-    // Set the timer's enable pin to the LED pin
-    shutdownTimer.setEnPin(LED_PIN);
-
-    // Set the shutdown duration (e.g., 5 seconds)
-    shutdownTimer.setShutdownTimeSec(5);
-
-    // Start the timer
-    if (shutdownTimer.start() != pdPASS) {
-        Serial.println("Failed to start the shutdown timer");
-    }
-
-    // Indicate the system is alive
-    digitalWrite(LED_PIN, LOW); // Turn on the LED
+    // Start the shutdown timer
+    shutdownTimer.start();
 }
 
-void loop() {
-    // Toggle the LED to show the system is running
-    digitalWrite(LED_PIN, !digitalRead(LED_PIN));
-    delay(100);
+unsigned long time_passed = 0;
+void loop()
+{
+    delay(1000); // Delay for 1 second
+    time_passed++;
+    int timeLeft = SHUTDOWN_DURATION_SEC - time_passed;
+    Serial.printf("Time left: %d seconds\n", timeLeft);
+    
+    static bool reset_demo_flag = false;
+    if (timeLeft == 5 && !reset_demo_flag) {
+        Serial.println("Resetting the shutdown timer");
+        shutdownTimer.reset();
+        time_passed = 0;
+        reset_demo_flag = true;
+    }
+
+
 }
